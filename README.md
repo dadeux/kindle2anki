@@ -1,9 +1,11 @@
 # kindle2anki
 Create Anki Card Decks from Kindle vocab.db
 
-This little project helps avid language learners to create Anki Card Decks for the vocabulary they looked up from Kindle E-Books (from dictioinaries installed within Kindle). Kindle stores these look-ups within an internal sqlite3 database and offers basic flash-card study functionality to review the vocabluary however without the spaced repetition 
+This little project helps avid language learners to create Anki Card Decks for the vocabulary they looked up from Kindle E-Books (from dictioinaries installed within Kindle). Kindle stores these look-ups within an internal sqlite3 database and offers basic flash-card study functionality to review the vocabluary however without the spaced repetition algorithm implemented.
 
-1. kindle2anki.py:
+The project contains two files:
+
+1. **kindle2anki.py**:
    The main program: 
    - queries the kindle vocab.db for books that contain words that where looked up from within kindle
    - has you select a book for which you want to extract the vocabluary and create a card deck
@@ -14,7 +16,7 @@ This little project helps avid language learners to create Anki Card Decks for t
    - looks up the word definitions from chosen online dictionary
    - creates card deck with one card of the chosen type with one card for each word from the looked-up words of the chosen book
    
-2. k2a_response_parsers.py:
+2. **k2a_response_parsers.py**:
    contains customized parser functions, one for each online dictionary that extract the dictionary definitions for the looked-up words
    from the https responses of the dicionary websites. These functions are selected and called by the main program depending on what
    online dictionary the user has selected. They may become disfunctional (i.e. require updating) if a site operator changes the document structure
