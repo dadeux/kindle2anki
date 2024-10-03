@@ -8,9 +8,9 @@ The project contains two files:
 1. **kindle2anki.py**:
    The main program: 
    - queries the kindle vocab.db for books that contain words that where looked up from within kindle
-   - has you select a book for which you want to extract the vocabluary and create a card deck
+   - has you select a book for which you want to extract the looked-up vocabluary and create a card deck
    - has you select a dictionary from a choice of configured dictionaries for the language of the chosen book
-   - has you select a card type: 
+   - has you select a card type with two types available:
      - Type 'A' Front: looked up word with enclosing text passage from kindle book / Back: dictionary definitions of word
      - Type 'B' Front: dicionary definitions of word / Back: word and text enclosing text passage from kindle book
    - looks up the word definitions from chosen online dictionary
