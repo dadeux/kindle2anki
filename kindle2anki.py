@@ -107,7 +107,7 @@ def checkargs(argv): # check and evaluate command line input
     if not (path.exists(vdb) and path.isfile(vdb)):
         exit(f"no vocab.db found at {dir}")
     if not access(vdb, R_OK):
-        print(f"vocab.db not readable")
+        exit(f"vocab.db not readable")
     
     # determine deck file
     if args.d == 'default':
