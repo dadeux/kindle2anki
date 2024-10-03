@@ -27,13 +27,14 @@ Howto use:
 - Copy the vocab.db file to a local directory on your computer (perhaps the same directory where the the kindle2anki.py and k2a_response_parsers.py files live)
 - Run the main program (no arguments needed if the all the files live in the same folder), the -h flag displays the usage:
 
-user@computer Anki Project % **./kindle2anki.py -h** 
+```user@computer Anki Project % **./kindle2anki.py -h** 
 usage: kindle2anki.py [-h] [-k K] [-d D] [-l L]
 
 Create Anki card decks from Kindle vocabulary database
 
 options:
   -h, --help  show this help message and exit
-  -k K        path directory where kindle vocab.db resides
-  -d D        name of Anki carddeck without '.apkv' extension, default='default'
+  -k K        Path to directory where kindle vocab.db resides, default='.'
+  -d D        Name of Anki card deck, default='default.apkg'
   -l L        log level for http(s) sessions, default='WARNING'
+```
