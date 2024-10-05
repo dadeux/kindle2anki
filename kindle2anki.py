@@ -145,6 +145,7 @@ def select_book(db): # select a Kindle book for which a vocab card deck is to be
     
     options = [] # for building menu opions
     book_id = {} # for looking up book_key for selected menu option
+
     for book in book_info:
         id = book['id']
         num_words = list(db.execute("SELECT COUNT(DISTINCT(word_key)) FROM LOOKUPS WHERE book_key = ?", id)[0].values())[0]
@@ -154,6 +155,7 @@ def select_book(db): # select a Kindle book for which a vocab card deck is to be
         options.append(option)
         book_id[option] = id
     options = sorted(options)
+
     while True:
         input("""
             Please select a book from which to create a deck
@@ -165,12 +167,16 @@ def select_book(db): # select a Kindle book for which a vocab card deck is to be
             """)
         terminal_menu = TerminalMenu(options, title='Books')
         menu_entry_index = terminal_menu.show()
-
-        match is_happy(options[menu_entry_index]):
-            case True:
-                break
-            case _:
-                continue
+        
+        # catch error if user presses escape instead of "y" or "n"
+        try:
+            match is_happy(options[menu_entry_index]):
+                case True:
+                    break
+                case _:
+                    continue
+        except TypeError:
+            continue
 
     # return the book dict for the selection
     return next((book for book in book_info if book['id'] == book_id[options[menu_entry_index]]), None)
@@ -180,24 +186,29 @@ def select_card_type(): # select card type 'A' (definitions on the back) or 'B' 
    :param :             this function takes no params
    :return card type:   i.e. 'A' or 'B' (see 'options' below)  
    """
-   options = ['A', 'B']
    options = [
         'A - Front: book passage with word / Back: definitions',
         'B - Front: definitions / Back: word and usage example from book'
    ]
    while True:
         input("""
-            Please select card type for your card deck:
-            Press any key to continue ...
-            """)
-        terminal_menu = TerminalMenu(options, title='Card Type')
-        menu_entry_index = terminal_menu.show()
+Please select card type for your card deck:
+Press any key to continue ...
+""")
 
-        match is_happy(options[menu_entry_index]):
-            case True:
-                return options[menu_entry_index][0]
-            case _:
-                continue 
+        terminal_menu = TerminalMenu(options, title='Card Type')
+        menu_entry_index = terminal_menu.show() 
+
+        # catch error when user presses escape instead of "y" or "n"
+        try:
+            match is_happy(options[menu_entry_index]):
+                case True:
+                    print(f'2 returning {options[menu_entry_index][0]}')
+                    return options[menu_entry_index][0]
+                case _:
+                    continue
+        except TypeError:
+            continue 
 
 def get_usage(db, book): # retrieve text passages with looked-up words from kindle db
     """
@@ -377,11 +388,13 @@ def select_dictionary(dicts): # select a dictionary for the lookups
     """
     options = [] # for building menu opions
     dict_id = {} # for looking up book_key for selected menu option
+
     for dict in dicts:
         option_keys = ['id', 'name', 'desc']
         option = '::'.join(str(dict[key]) for key in option_keys)
         options.append(option)
         dict_id[option] = dict['id']
+
     while True:
         input("""
             Please select a dictionary from which to query definitions.
@@ -394,11 +407,15 @@ def select_dictionary(dicts): # select a dictionary for the lookups
         terminal_menu = TerminalMenu(options, title='Dictionaries')
         menu_entry_index = terminal_menu.show()
 
-        match is_happy(options[menu_entry_index]):
-            case True:
-                break
-            case _:
-                continue
+        try:
+            match is_happy(options[menu_entry_index]):
+                case True:
+                    break
+                case _:
+                    continue
+        except TypeError:
+            continue
+
     return next((dict for dict in dicts if dict['id'] == dict_id[options[menu_entry_index]]), None)
 
 def get_definitions(session, dict, words):  # retrieve dictionary definitions for the looked-up words from the chosen Kindle book
@@ -656,4 +673,9 @@ def create_cards(deck, dict, card_type, words, usage, definitions): # write card
         deck.add_note(card)
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        # If Ctrl+C is pressed outside the main logic or for other reasons
+        print("\nKeyboard interrupt received - exiting...")
+        exit(0)
