@@ -1,16 +1,15 @@
 from bs4 import BeautifulSoup as bs
 import unicodedata
 import regex as re
-
-
 # each parser function defined maps to a specific online dictionary
 # the mapping is via the parser function naming as 'parse_' + {lang} + {dictionary ID}
 # e.g. functino 'parse_en_1' maps to the first (id '1') English (lang 'en') dictionary defined.
 # The available dictionaries are defined within the kindle2anki.getDictioaries() function 
 
-def parse_en_1 (response, word):    # EN: Merriam-Websters mono-lingual
+def parse_en_1 (response, word=None):    # EN: Merriam-Websters mono-lingual
     """
     :param response:    text response from the original lookup query to the mapped online dictionary 
+    :param word:        looked-up word, not needed in most parsers, but included to allow for uniform call across functions
     :return parsed:     text string containing the dictionary definitions parsed from the response 
     """
     soup = bs(response, 'html.parser')
@@ -43,9 +42,88 @@ def parse_en_1 (response, word):    # EN: Merriam-Websters mono-lingual
             
     return parsed
 
-def parse_fr_1 (response, word):    # FR: Larousse mono-lingual
+def parse_en_2 (response, word=None):    # EN: Larousse EN->DE
     """
     :param response:    text response from the original lookup query to the mapped online dictionary 
+    :param word:        looked-up word, not needed in most parsers, but included to allow for uniform call across functions
+    :return parsed:     text string containing the dictionary definitions parsed from the response 
+    """
+    parsed = ""
+    soup = bs(response, 'html.parser')
+    definitions = soup.find_all(class_='content en-de')
+
+    if not definitions:
+        return "None"
+    
+    for definition in definitions:
+        cleaned = definition.get_text(separator=" ", strip=True)
+        # Normalize to handle accent variations (NFC)
+        cleaned = unicodedata.normalize("NFC", cleaned)
+
+        cleaned = re.sub(r'\r?\n', ' ', cleaned)
+        cleaned = re.sub(r'(\d\.)' ,r'\n\n\1',cleaned)
+        parsed += f"{cleaned}\n"
+    
+    return parsed
+
+def parse_en_3 (response, word=None):    # EN: Larousse EN->FR
+    """
+    :param response:    text response from the original lookup query to the mapped online dictionary 
+    :param word:        looked-up word, not needed in most parsers, but included to allow for uniform call across functions
+    :return parsed:     text string containing the dictionary definitions parsed from the response 
+    """
+    parsed = ""
+    soup = bs(response, 'html.parser')
+    
+    definition_section = soup.find(id='BlocArticle')
+
+    if not definition_section:
+        return "None"
+    
+    # more than one definition
+    definitions = definition_section.find_all(class_='itemZONESEM')
+    if not definitions:
+        # only one definition
+        definitions = [ definition_section.find(class_='ZoneTexte') ]
+
+    for count, definition in enumerate(definitions, 1):
+        cleaned = definition.get_text(separator=" ", strip=True)
+        cleaned = unicodedata.normalize("NFC", cleaned)
+        
+        if len(definitions) == 1:
+            parsed += cleaned
+        else:
+            parsed += f"{count}. {cleaned}\n\n"
+    
+    return parsed
+
+def parse_en_4 (response, word=None):    # EN: Larousse EN->SP
+    """
+    :param response:    text response from the original lookup query to the mapped online dictionary 
+    :param word:        looked-up word, not needed in most parsers, but included to allow for uniform call across functions
+    :return parsed:     text string containing the dictionary definitions parsed from the response 
+    """
+    soup = bs(response, 'html.parser')
+    
+    definition_section = soup.find(class_='content en-es')
+    if not definition_section:
+        return 'None'
+    
+    for a in definition_section.find_all("a"):
+         a.replace_with(a.text)
+    
+    cleaned = definition_section.get_text(separator=" ", strip=True)
+    cleaned = unicodedata.normalize("NFC", cleaned)
+    cleaned = re.sub(r'(\r\n|\n|\r)', ' ', cleaned)
+    cleaned = re.sub(r'Conjugation ','', cleaned)
+    cleaned = re.sub(r'(\d\.)' ,r'\n\1',cleaned)
+
+    return cleaned
+
+def parse_fr_1 (response, word=None):    # FR: Larousse mono-lingual
+    """
+    :param response:    text response from the original lookup query to the mapped online dictionary 
+    :param word:        looked-up word, not needed in most parsers, but included to allow for uniform call across functions
     :return parsed:     text string containing the dictionary definitions parsed from the response 
     """
     parsed = ""
@@ -71,9 +149,10 @@ def parse_fr_1 (response, word):    # FR: Larousse mono-lingual
     
     return parsed
 
-def parse_es_1 (response):          # ES: Real Académia Española mono-lingual
+def parse_es_1 (response, word=None):    # ES: Real Académia Española mono-lingual
     """
     :param response:    text response from the original lookup query to the mapped online dictionary 
+    :param word:        looked-up word, not needed in most parsers, but included to allow for uniform call across functions
     :return parsed:     text string containing the dictionary definitions parsed from the response 
     """
     parsed = ""
@@ -105,11 +184,11 @@ def parse_es_1 (response):          # ES: Real Académia Española mono-lingual
     else:
         return 'None'
 
-def parse_pt_1 (response, word):    # PT: Priberam  mono-lingual
+def parse_pt_1 (response, word=None):    # PT: Priberam  mono-lingual
     """
     :param response:    text response from the original lookup query to the mapped online dictionary 
     :param word:        word that was looked up (is used in some regex below) 
-    :return cleaned:     text string containing the dictionary definitions parsed from the response 
+    :return cleaned:    text string containing the dictionary definitions parsed from the response 
     """
     soup = bs(response, 'html.parser')
 

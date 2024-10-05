@@ -62,7 +62,7 @@ def main(): # main program
 
     # establish a connection to the dictionary URL of the chosen dictionary
     if rae == False:
-        session = connect(dict['url'], num_log_level)
+        session = connect(dict['url'], dict['referer'], num_log_level)
 
         # retrieve dictinary definitions for the words in our book that were looked up in kindle
         definitions = get_definitions(session, dict, words)
@@ -110,7 +110,7 @@ def checkargs(argv): # check and evaluate command line input
         exit(f"vocab.db not readable")
     
     # determine deck file
-    if args.d == 'default':
+    if args.d == 'default' or args.d == 'default.apkg':
         deckname = "default.apkg"
     else:
         if re.match(r'.+\.apkg', args.d):
@@ -228,6 +228,7 @@ def get_dictionaries(lang): # get available dictionaries for language of chosen 
         #    'name': '',     # name of dictionary
         #    'desc': '',     # description of dictionary
         #    'url': ''       # URL including "http[s]://" stump  
+        #    'referer'       # referer URL to be used in request headers
         #}
         # dictionaries for which no parser has as yet been written, are commmented out 
     dictionaries = {
@@ -239,80 +240,36 @@ def get_dictionaries(lang): # get available dictionaries for language of chosen 
                 'dst_lang': 'en',
                 'name': 'Meriam Webster',
                 'desc': 'mono-lingual ',
-                'url': 'https://www.merriam-webster.com/dictionary/'
+                'url': 'https://www.merriam-webster.com/dictionary/',
+                'referer': 'https://www.merriam-webster.com',
+            },
+            { 
+                'id': 2,
+                'src_lang': 'en',
+                'dst_lang': 'de',
+                'name': 'Larousse',
+                'desc': 'bi-lingual EN->DE',
+                'url': 'https://www.larousse.com/en/dictionaries/english-german/',
+                'referer': 'https://www.larousse.com'
             },
             {   
-                'id': 2,       
+                'id': 3,       
                 'src_lang': 'en',
-                'dst_lang': 'en',
-                'name': 'Collins',
-                'desc': 'mono-lingual ',
-                'url': 'https://www.collinsdictionary.com/dictionary/english/'
+                'dst_lang': 'fr',
+                'name': 'Larousse',
+                'desc': 'bi-lingual EN->FR',
+                'url': 'https://www.larousse.fr/dictionnaires/anglais-francais/',
+                'referer': 'https://www.larousse.fr/'
             },
-            # { 
-            #     'id': 3,
-            #     'src_lang': 'en',
-            #     'dst_lang': 'de',
-            #     'name': 'Larousse',
-            #     'desc': 'bi-lingual EN->DE',
-            #     'url': 'https://www.larousse.com/en/dictionaries/english-german'
-            # },
-            # {   
-            #     'id': 4,       
-            #     'src_lang': 'en',
-            #     'dst_lang': 'fr',
-            #     'name': 'Larousse',
-            #     'desc': 'bi-lingual EN->FR',
-            #     'url': 'https://www.larousse.fr/dictionnaires/anglais-francais'
-            # },
-            # {   
-            #     'id': 5,       
-            #     'src_lang': 'en',
-            #     'dst_lang': 'es',
-            #     'name': 'Larousse',
-            #     'desc': 'bi-lingual EN->ES',
-            #     'url': 'https://www.larousse.com/en/dictionaries/english-spanish'
-            # },
-            # {   
-            #     'id': 6,       
-            #     'src_lang': 'en',
-            #     'dst_lang': 'fr',
-            #     'name': 'Collins',
-            #     'desc': 'bi-lingual EN->FR',
-            #     'url': 'https://www.collinsdictionary.com/dictionary/english-french/'
-            # },
-            # {   
-            #     'id': 7,       
-            #     'src_lang': 'en',
-            #     'dst_lang': 'fr',
-            #     'name': 'Collins',
-            #     'desc': 'bi-lingual EN->FR',
-            #     'url': 'https://www.collinsdictionary.com/dictionary/english-french/'
-            # },
-            # {   
-            #     'id': 8,       
-            #     'src_lang': 'en',
-            #     'dst_lang': 'es',
-            #     'name': 'Collins',
-            #     'desc': 'bi-lingual EN->SP',
-            #     'url': 'https://www.collinsdictionary.com/dictionary/english-spanish/'
-            # },
-            # {   
-            #     'id': 9,       
-            #     'src_lang': 'en',
-            #     'dst_lang': 'pt',
-            #     'name': 'Collins',
-            #     'desc': 'bi-lingual EN->PT',
-            #     'url': 'https://www.collinsdictionary.com/dictionary/english-portuguese/'
-            # },
-            # {   
-            #     'id': 10,       
-            #     'src_lang': 'en',
-            #     'dst_lang': 'de',
-            #     'name': 'Collins',
-            #     'desc': 'bi-lingual EN->DE',
-            #     'url': 'https://www.collinsdictionary.com/dictionary/english-german/'
-            # },
+            {   
+                'id': 4,       
+                'src_lang': 'en',
+                'dst_lang': 'es',
+                'name': 'Larousse',
+                'desc': 'bi-lingual EN->ES',
+                'url': 'https://www.larousse.com/en/dictionaries/english-spanish/',
+                'referer': 'https://www.larousse.com'
+            },
         ],
         # french dictionaries
         'fr': [
@@ -322,7 +279,8 @@ def get_dictionaries(lang): # get available dictionaries for language of chosen 
                 'dst_lang': 'fr',
                 'name': 'Larousse',
                 'desc': 'mono-lingual FR->FR',
-                'url': 'https://www.larousse.fr/dictionnaires/francais/'
+                'url': 'https://www.larousse.fr/dictionnaires/francais/',
+                'referer': 'https://www.larousse.fr'
             },
             # {   
             #     'id': 2,       
@@ -357,7 +315,8 @@ def get_dictionaries(lang): # get available dictionaries for language of chosen 
                 'dst_lang': 'es',
                 'name': 'Dicionario de la lengua española',
                 'desc': 'mono-lingual Spanish dictionary by the "Real Academia Española"',
-                'url': 'https://dle.rae.es/'
+                'url': 'https://dle.rae.es/',
+                'referer': 'https://dle.rae.es'
             },
             # {   
             #     'id': 2,       
@@ -377,7 +336,8 @@ def get_dictionaries(lang): # get available dictionaries for language of chosen 
                 'dst_lang': 'pt',
                 'name': 'Michaelis',
                 'desc': 'mono-lingual PT->PT (Brazilian)',
-                'url': 'https://michaelis.uol.com.br/moderno-portugues/busca/portugues-brasileiro/'
+                'url': 'https://michaelis.uol.com.br/moderno-portugues/busca/portugues-brasileiro/',
+                'referer': 'https://michaelis.uol.com.br'
             },
             # {   
             #     'id': 2,       
@@ -454,10 +414,11 @@ def get_definitions(session, dict, words):  # retrieve dictionary definitions fo
     parser = 'parse_' + dict['src_lang'] + "_" + str(dict['id'])
     parse = getattr(p, parser)
 
+    print(f'Looking up words at {baseurl}...', end="")
     for word in words:
         # determine lookup url for word
         url =  baseurl + word.lower()
-        print(f"looking up {word} ...")
+        print(f"looking up {word} ...", end="")
         try:
             r = session.get(url, timeout=5)
         except Exception as err:
@@ -466,6 +427,10 @@ def get_definitions(session, dict, words):  # retrieve dictionary definitions fo
         else:
             r.encoding = 'utf-8'  # Explicitly set the encoding to utf-8
             definitions[word] = parse(r.text, word) # word is not used in all parser functions but we submit it for good measure
+        if definitions[word] == 'None':
+            print('not found')
+        else:
+            print('success') 
     return definitions
 
 def get_definitions_rae(words, log_level):  # custom get_definitions function for "rae" since our standard connect method did not work
@@ -482,7 +447,7 @@ def get_definitions_rae(words, log_level):  # custom get_definitions function fo
 
     for word in words:
         # base url is encoded in dle module
-        print(f"looking up {word} ...")
+        print(f'looking up {word} ...', end="")
         try:
             r = dle.search_by_word(word = f'{word}')
         except Exception as err:
@@ -490,8 +455,11 @@ def get_definitions_rae(words, log_level):  # custom get_definitions function fo
             definitions[word] = 'None'
         else:
             r.encoding = 'utf-8'  # Explicitly set the encoding to utf-8
-            #print(r._html)
             definitions[word] = parse(r._html)
+            if definitions[word] == 'None':
+                print('not found')
+            else:
+                print('success')
     return definitions
 
 def highlight(definition, word, card_type, lang): # highlight occurences of the word in bold-face
@@ -567,7 +535,7 @@ def is_happy(selection): # make sure user is happy with a menu selection
         case 'n'|'N'|'no'|'NO':
             return False
 
-def connect(url, log_level): # initiate https connection to online dictionary
+def connect(url, referer, log_level): # initiate https connection to online dictionary
     """
     :param url:         dicionary URL 
     :log_level:         log level for session logging
@@ -575,18 +543,24 @@ def connect(url, log_level): # initiate https connection to online dictionary
     """
     logging.getLogger("requests").setLevel(log_level)
     logging.getLogger("urllib3").setLevel(log_level)
-    adapter = HTTPAdapter(max_retries=2)
+    adapter = HTTPAdapter(max_retries=5)
     session = requests.Session()
     session.mount(url, adapter)
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.83 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
+        'Referer': referer,
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Connection': 'keep-alive'
     }
 
     try:
         r = session.get(
             url,
             timeout = (3, 5),
-            headers = headers
+            headers = headers,
+            allow_redirects=True
         )
         r.raise_for_status()
     except RetryError as err:
@@ -596,7 +570,7 @@ def connect(url, log_level): # initiate https connection to online dictionary
     except Exception as err:
         print(f"some error occured: {err}")
     else:
-        print(f"Successfully connected to {url}!")
+        print(f"Successfully connected to {url}")
 
     return session
 
@@ -613,6 +587,7 @@ def create_deck(deckname): # create a card deck
         deck_id,
         deckname
     )
+    print(f'Creating card deck {deckname}')
     return deck
 
 def create_cards(deck, dict, card_type, words, usage, definitions): # write cards to card deck 
@@ -655,6 +630,7 @@ def create_cards(deck, dict, card_type, words, usage, definitions): # write card
             print(f"no definition found for {word} - skipping ...")
             continue
         else:
+            print(f"Adding card for {word} ...")
             #htmlify '\n' in definitions and highlight word occurences in bold-face
             definition = highlight(definitions[word].replace('\n','<br>'), word, card_type, dict['src_lang'])
 
