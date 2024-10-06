@@ -158,13 +158,13 @@ def select_book(db): # select a Kindle book for which a vocab card deck is to be
 
     while True:
         input("""
-            Please select a book from which to create a deck
-            Options for Selection will be presented in format:
+Please select a book from which to create a deck
+Options for Selection will be presented in format:
 
-            <language>::<Book Title>::<Authors>::<count of looked up words to be included in deck>
+<language>::<Book Title>::<Authors>::<count of looked up words to be included in deck>
             
-            Press any key to continue ...
-            """)
+Press any key to continue ...
+""")
         terminal_menu = TerminalMenu(options, title='Books')
         menu_entry_index = terminal_menu.show()
         
@@ -397,13 +397,13 @@ def select_dictionary(dicts): # select a dictionary for the lookups
 
     while True:
         input("""
-            Please select a dictionary from which to query definitions.
-            Options for selection will be presented in format:
+Please select a dictionary from which to query definitions.
+Options for selection will be presented in format:
 
-            <id>::<dictionary name>::<dicionary description>
+<id>::<dictionary name>::<dicionary description>
             
-            Press any key to continue ...
-            """)
+Press any key to continue ...
+""")
         terminal_menu = TerminalMenu(options, title='Dictionaries')
         menu_entry_index = terminal_menu.show()
 
