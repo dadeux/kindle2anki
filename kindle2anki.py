@@ -1,13 +1,11 @@
 #!/usr/local/bin/python3
-# for arg-parsing and basic error handling 
+
+# imports
 from sys import exit, argv
 from os import path, access, R_OK
 import argparse
-# for retrieving vocab lookup info from kindle db
 from cs50 import SQL
-# for generating selection menus for user input
 from simple_term_menu import TerminalMenu
-# for making and handling https requests to online dictionaries
 import requests
 import logging
 from urllib.error import HTTPError
@@ -15,9 +13,7 @@ from requests.adapters import HTTPAdapter
 from requests.exceptions import RetryError
 from pyrae import dle
 import regex as re
-# my own custom parsers for dictinionary queries§
 import k2a_response_parsers as p
-# for generating anki decks with unique ids
 import hashlib
 from datetime import datetime
 import genanki
@@ -83,6 +79,7 @@ def main(): # main program
     genanki.Package(deck).write_to_file(deckname)
 
 def checkargs(argv): # check and evaluate command line input
+    print(argv)
     """
     :param argv:    array of command line arguments to be parsed and interpreted  
     :return dict:   anonymous dictionary containing 'vdb' (the path to the kindle vocabluary database)
@@ -379,7 +376,10 @@ def get_dictionaries(lang): # get available dictionaries for language of chosen 
             # },
         ]
     }
-    return dictionaries[lang]
+    if lang in list(dictionaries.keys()):
+        return dictionaries[lang]
+    else:
+        raise ValueError("Invalid Language")
 
 def select_dictionary(dicts): # select a dictionary for the lookups
     """
