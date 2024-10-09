@@ -79,7 +79,6 @@ def main(): # main program
     genanki.Package(deck).write_to_file(deckname)
 
 def checkargs(argv): # check and evaluate command line input
-    print(argv)
     """
     :param argv:    array of command line arguments to be parsed and interpreted  
     :return dict:   anonymous dictionary containing 'vdb' (the path to the kindle vocabluary database)
@@ -184,7 +183,7 @@ def select_card_type(): # select card type 'A' (definitions on the back) or 'B' 
    :return card type:   i.e. 'A' or 'B' (see 'options' below)  
    """
    options = [
-        'A - Front: book passage with word / Back: definitions',
+        'A - Front: word and usage example from book / Back: definitions',
         'B - Front: definitions / Back: word and usage example from book'
    ]
    while True:
@@ -200,7 +199,6 @@ Press any key to continue ...
         try:
             match is_happy(options[menu_entry_index]):
                 case True:
-                    print(f'2 returning {options[menu_entry_index][0]}')
                     return options[menu_entry_index][0]
                 case _:
                     continue

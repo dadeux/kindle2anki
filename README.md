@@ -1,7 +1,9 @@
 # kindle2anki
+
 **Create _Anki_ card decks from _Kindle_ vocab.db**
 
-This little project helps language learners to create Anki Card Decks for the vocabulary they looked up from Kindle E-Books (from dictionaries installed within Kindle). Kindle stores these look-ups within an internal sqlite3 database and offers basic flash-card study functionality to review the vocabluary, however without the spaced repetition algorithm implemented in a fully-fledged flash card application like Anki, that we want to leverage.
+This little utility has been created as the final project for my Harvard CS50 Introduction to Programming with Python Course. 
+It helps language learners to create Anki Card Decks for the vocabulary they looked up from Kindle E-Books (from dictionaries installed within Kindle). Kindle stores these look-ups within an internal sqlite3 database and offers basic flash-card study functionality to review the vocabluary, however without the spaced repetition algorithm implemented in a fully-fledged flash card application like Anki, that we want to leverage.
 
 The project contains two files:
 
@@ -19,8 +21,7 @@ The project contains two files:
 2. **k2a_response_parsers.py**:
    contains customized parser functions, one for each online dictionary that extract the dictionary definitions for the looked-up words
    from the https responses of the dicionary websites. These functions are selected and called by the main program depending on what
-   online dictionary the user has selected. They may become disfunctional (i.e. require updating) if a site operator changes the document structure
-   of their responses to dictionary queries.
+   online dictionary the user has selected. They may become disfunctional (i.e. require updating) if a site operator changes the document structure of their responses to dictionary queries.
 
 How to use:
   - Connect your Kindle via USB to your computer. The vocab.db can be located at <path_to_mounted_volume>:/system/vocab.db
