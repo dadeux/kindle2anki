@@ -8,12 +8,14 @@ from cs50 import SQL
 from simple_term_menu import TerminalMenu
 import requests
 import logging
+import chardet
 from urllib.error import HTTPError
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RetryError
 from pyrae import dle
 import regex as re
 import k2a_response_parsers as p
+import k2a_dictionaries as d
 import hashlib
 from datetime import datetime
 import genanki
@@ -34,11 +36,11 @@ def main(): # main program
 
     # get list of dictionaries dictionaries with source language 
     # matching the language of the chosen book
-    dicts = get_dictionaries(book['lang'])
+    dicts = d.get_dictionaries(book['lang'])
     if not dicts:
         exit(f"no dictionary as yet configured for language '{book['lang']}'")
 
-    # select one of the dicitonaries available for the source language
+    # select one of the dicitionaries available for the source language
     dict = select_dictionary(dicts)
     if dict['url'] == 'https://dle.rae.es/':
         rae = True
@@ -73,7 +75,9 @@ def main(): # main program
     deck = create_deck(deckname)
 
     # add cards to the card deck (of the chosen card type, one per word)
-    create_cards(deck, dict, card_type, words, usage, definitions)
+    has_cards = create_cards(deck, dict, card_type, words, usage, definitions)
+    if has_cards == False:
+        exit(f'\nToo bad - no definitions found in selected dictionary for words in selected book!\n')
 
     # write out card deck to a apkg file
     genanki.Package(deck).write_to_file(deckname)
@@ -161,7 +165,7 @@ Options for Selection will be presented in format:
             
 Press any key to continue ...
 """)
-        terminal_menu = TerminalMenu(options, title='Books')
+        terminal_menu = TerminalMenu(options, title='Books:')
         menu_entry_index = terminal_menu.show()
         
         # catch error if user presses escape instead of "y" or "n"
@@ -192,7 +196,7 @@ Please select card type for your card deck:
 Press any key to continue ...
 """)
 
-        terminal_menu = TerminalMenu(options, title='Card Type')
+        terminal_menu = TerminalMenu(options, title='Card Type:')
         menu_entry_index = terminal_menu.show() 
 
         # catch error when user presses escape instead of "y" or "n"
@@ -220,165 +224,6 @@ def get_usage(db, book): # retrieve text passages with looked-up words from kind
             usage[word] = worddict['usage'].replace(word, f"<b>{word}</b>")
     return usage
 
-def get_dictionaries(lang): # get available dictionaries for language of chosen book
-    """
-    :param lang:                source language of dictionaries to be presented for selection (e.g. "en" for English) 
-    :return dictionaries[lang]: a list of dictionaries (data type) for the selected language, each bundling information (e.g. URL, Description) on a specific dictionary  
-    """
-   # template for dict entry
-        #'src_lang': '',     #'source language' = language of lookup word
-        #'dictionaries': {   # available dictionaries of that language
-        #    'id': 1,        # id for that dictionary
-        #    'src_lang': '', # language of word to be looked up 
-        #    'dst_lang': '', # language of definitions retreived 
-        #    'name': '',     # name of dictionary
-        #    'desc': '',     # description of dictionary
-        #    'url': ''       # URL including "http[s]://" stump  
-        #    'referer'       # referer URL to be used in request headers
-        #}
-        # dictionaries for which no parser has as yet been written, are commmented out 
-    dictionaries = {
-        # english dictionaries
-        'en': [
-            {   
-                'id': 1,
-                'src_lang': 'en',
-                'dst_lang': 'en',
-                'name': 'Meriam Webster',
-                'desc': 'mono-lingual ',
-                'url': 'https://www.merriam-webster.com/dictionary/',
-                'referer': 'https://www.merriam-webster.com',
-            },
-            { 
-                'id': 2,
-                'src_lang': 'en',
-                'dst_lang': 'de',
-                'name': 'Larousse',
-                'desc': 'bi-lingual EN->DE',
-                'url': 'https://www.larousse.com/en/dictionaries/english-german/',
-                'referer': 'https://www.larousse.com'
-            },
-            {   
-                'id': 3,       
-                'src_lang': 'en',
-                'dst_lang': 'fr',
-                'name': 'Larousse',
-                'desc': 'bi-lingual EN->FR',
-                'url': 'https://www.larousse.fr/dictionnaires/anglais-francais/',
-                'referer': 'https://www.larousse.fr/'
-            },
-            {   
-                'id': 4,       
-                'src_lang': 'en',
-                'dst_lang': 'es',
-                'name': 'Larousse',
-                'desc': 'bi-lingual EN->ES',
-                'url': 'https://www.larousse.com/en/dictionaries/english-spanish/',
-                'referer': 'https://www.larousse.com'
-            },
-        ],
-        # french dictionaries
-        'fr': [
-            {   
-                'id': 1,       
-                'src_lang': 'fr',
-                'dst_lang': 'fr',
-                'name': 'Larousse',
-                'desc': 'mono-lingual FR->FR',
-                'url': 'https://www.larousse.fr/dictionnaires/francais/',
-                'referer': 'https://www.larousse.fr'
-            },
-            # {   
-            #     'id': 2,       
-            #     'src_lang': 'fr',
-            #     'dst_lang': 'en',
-            #     'name': 'Larousse',
-            #     'desc': 'bi-lingual FR->EN',
-            #     'url': 'https://www.larousse.fr/dictionnaires/francais-anglais'
-            # },
-            # {   
-            #     'id': 3,       
-            #     'src_lang': 'fr',
-            #     'dst_lang': 'de',
-            #     'name': 'Larousse',
-            #     'desc': 'bi-lingual FR->DE',
-            #     'url': 'https://www.larousse.fr/dictionnaires/francais-allemand'
-            # },
-            # {   
-            #     'id': 4,       
-            #     'src_lang': 'fr',
-            #     'dst_lang': 'es',
-            #     'name': 'Larousse',
-            #     'desc': 'bi-lingual FR->ES',
-            #     'url': 'https://www.larousse.com/en/dictionaries/francais-espagnol'
-            # },
-        ],
-        # spanish dictionaries
-        'es': [
-            {   
-                'id': 1,       
-                'src_lang': 'es',
-                'dst_lang': 'es',
-                'name': 'Dicionario de la lengua española',
-                'desc': 'mono-lingual Spanish dictionary by the "Real Academia Española"',
-                'url': 'https://dle.rae.es/',
-                'referer': 'https://dle.rae.es'
-            },
-            # {   
-            #     'id': 2,       
-            #     'src_lang': 'es',
-            #     'dst_lang': 'en',
-            #     'name': 'Collins',
-            #     'desc': 'bi-lingual ES->EN',
-            #     'url': 'https://www.collinsdictionary.com/dictionary/spanish-english/'
-            # },
-
-        ],
-        # portuguese dictionaries
-        'pt': [
-            {   
-                'id': 1,       
-                'src_lang': 'pt',
-                'dst_lang': 'pt',
-                'name': 'Michaelis',
-                'desc': 'mono-lingual PT->PT (Brazilian)',
-                'url': 'https://michaelis.uol.com.br/moderno-portugues/busca/portugues-brasileiro/',
-                'referer': 'https://michaelis.uol.com.br'
-            },
-            # {   
-            #     'id': 2,       
-            #     'src_lang': 'pt',
-            #     'dst_lang': 'en',
-            #     'name': 'Collins',
-            #     'desc': 'bi-lingual PT->EN',
-            #     'url': 'https://www.collinsdictionary.com/dictionary/portuguese-english/'
-            # },
-        ],
-        # german dictionaries
-        'de': [
-            # {   
-            #     'id': 1,       
-            #     'src_lang': 'de',
-            #     'dst_lang': 'de',
-            #     'name': 'Digitales Wörterbuch der deutschen Sprache',
-            #     'desc': 'mono-lingual DE->DE',
-            #     'url': 'https://www.dwds.de/wb/'
-            # },
-            # {   
-            #     'id': 2,       
-            #     'src_lang': 'de',
-            #     'dst_lang': 'en',
-            #     'name': 'Collins',
-            #     'desc': 'bi-lingual DE->EN',
-            #     'url': 'https://www.collinsdictionary.com/dictionary/german-english/'
-            # },
-        ]
-    }
-    if lang in list(dictionaries.keys()):
-        return dictionaries[lang]
-    else:
-        raise ValueError("Invalid Language")
-
 def select_dictionary(dicts): # select a dictionary for the lookups
     """
     :param dicts: a list of dictionaries to chose from (those matching the language of the chosen book)
@@ -402,7 +247,7 @@ Options for selection will be presented in format:
             
 Press any key to continue ...
 """)
-        terminal_menu = TerminalMenu(options, title='Dictionaries')
+        terminal_menu = TerminalMenu(options, title='Dictionaries:')
         menu_entry_index = terminal_menu.show()
 
         try:
@@ -429,10 +274,18 @@ def get_definitions(session, dict, words):  # retrieve dictionary definitions fo
     parser = 'parse_' + dict['src_lang'] + "_" + str(dict['id'])
     parse = getattr(p, parser)
 
-    print(f'Looking up words at {baseurl}...', end="")
+    print(f'Looking up words at {baseurl}...')
+
+    detected_encoding = False
+    logging.getLogger('chardet').setLevel(logging.WARNING)
+
     for word in words:
         # determine lookup url for word
-        url =  baseurl + word.lower()
+        if 'linguee' in baseurl:
+            url =  baseurl + word.lower() + '.html'
+        else:
+            url =  baseurl + word.lower()
+
         print(f"looking up {word} ...", end="")
         try:
             r = session.get(url, timeout=5)
@@ -440,12 +293,17 @@ def get_definitions(session, dict, words):  # retrieve dictionary definitions fo
             print(f"an error occured trying to retrieve {url}")
             definitions[word] = 'None'
         else:
-            r.encoding = 'utf-8'  # Explicitly set the encoding to utf-8
+            # detect encoding
+            if not detected_encoding:
+                detected_encoding = chardet.detect(r.content)['encoding']
+            r.encoding = detected_encoding if detected_encoding else 'utf-8'
             definitions[word] = parse(r.text, word) # word is not used in all parser functions but we submit it for good measure
+
         if definitions[word] == 'None':
             print('not found')
         else:
             print('success') 
+
     return definitions
 
 def get_definitions_rae(words, log_level):  # custom get_definitions function for "rae" since our standard connect method did not work
@@ -492,7 +350,7 @@ def highlight(definition, word, card_type, lang): # highlight occurences of the 
     patterns = [word]
     s = {
         'en': ['s', 'ed', 'er', 'ing', 'ly'],
-        'fr': ['s', 'e', 'es', 'eur', 'euse', 'aux', 'il', 'ille', 'eux', 'x','t', 'ent' , 'is' ,'it', 'ons', 'ont','ment'],
+        'fr': ['s', 'e', 'es', 'er', 'eur', 'euse', 'aux', 'il', 'ille', 'eux', 'x','t', 'ent' , 'is' ,'it', 'ons', 'ont','ment'],
         'es': ['s','o','a','os','as','ir','er','ar','í','ó','é','aron','se','ieron','amos','imos','emos','eis','ais','mente','aba'],
         'pt': ['s','ir','er','ar','a','o','al','este','amos','emos','imos','ou','ei','i','ão','ões','aste','aram','eram','mente','ava'],
         'de': ['e','st','er','s','t','d','en','ig','lich','ung','keit'],
@@ -523,7 +381,7 @@ def highlight(definition, word, card_type, lang): # highlight occurences of the 
 
     # hightlight patterns, for card type 'B' replace the word by (...)
     for pattern in patterns:
-        p = rf'(^|\s)({pattern})(\s|\.|\,|:|\?|$)'
+        p = rf'(^|\s?)({pattern})(\s|\.|\,|:|\?|$)'
         if card_type == 'A':
             r = r'\1<b>\2</b>\3'
         else:
@@ -607,13 +465,13 @@ def create_deck(deckname): # create a card deck
 
 def create_cards(deck, dict, card_type, words, usage, definitions): # write cards to card deck 
     """
-    :param deck:        the card deck object that accomodates the cards to be created
-    :param dict:        the dictionary object used
-    :param card_type:   the card type selected (A or B) 
-    :param words:       array of words for which cards are to be created
-    :param usage:       a dictionary object containing the text passages from which words had been looked up in Kindle 
-    :param definitions: the dictionary definintions looked up for each word        
-    :return:            this functinon does not have a return value
+    :param deck:            the card deck object that accomodates the cards to be created
+    :param dict:            the dictionary object used
+    :param card_type:       the card type selected (A or B) 
+    :param words:           array of words for which cards are to be created
+    :param usage:           a dictionary object containing the text passages from which words had been looked up in Kindle 
+    :param definitions:     the dictionary definintions looked up for each word        
+    :return deck_is_empty:  Boolean: True if no cards were added, Falls if deck contains cards 
     """
     # Define the basic card model (Front/Back flashcard)
     basic_model = genanki.Model(
@@ -640,6 +498,8 @@ def create_cards(deck, dict, card_type, words, usage, definitions): # write card
         """  # Custom CSS controlling font size and other styles
     )
     # iterate over words to to create cards and add the to the deck ...
+
+    has_cards = False
     for word in words:
         if definitions[word] == 'None':
             print(f"no definition found for {word} - skipping ...")
@@ -648,27 +508,33 @@ def create_cards(deck, dict, card_type, words, usage, definitions): # write card
             print(f"Adding card for {word} ...")
             #htmlify '\n' in definitions and highlight word occurences in bold-face
             definition = highlight(definitions[word].replace('\n','<br>'), word, card_type, dict['src_lang'])
+            #definition = highlight(definitions[word], word, card_type, dict['src_lang'])
+            definition = re.sub(r" {2,}", "\xa0", definition)
 
+            # htmlify '\n' in text passage
+            passage = usage[word].replace('\n','<br>')
+            passage = re.sub(r" {2,}", lambda match: "&nbsp;" * len(match.group()), passage)
 
-        # htmlify '\n' in text passage
-        passage = usage[word].replace('\n','<br>')
-
-        # define front and back depending on card type and highlight occurrences of word
-        # Kindle passage and dictionary definitions
-        if card_type == 'A':
-            # make looked word stand out bold in text passage
-            front = f"<b>{word}</b><br><br>{passage}"
-            back = definition
-        else: # card type must be 'B'
-            front = definition
-            back = f"<b>{word}</b><br><br>{passage}" 
+            # define front and back depending on card type and highlight occurrences of word
+            # Kindle passage and dictionary definitions
+            if card_type == 'A':
+                # make looked word stand out bold in text passage
+                front = f"<b>{word}</b><br><br>{passage}"
+                back = definition
+            else: # card type must be 'B'
+                front = definition
+                back = f"<b>{word}</b><br><br>{passage}" 
         
-        # create card for word
-        card = genanki.Note(
-            model = basic_model,
-            fields=[front, back])
-        # add card to deck
-        deck.add_note(card)
+            # create card for word
+            card = genanki.Note(
+                model = basic_model,
+                fields=[front, back])
+
+            # add card to deck
+            deck.add_note(card)
+            has_cards = True
+
+    return has_cards
 
 if __name__ == "__main__":
     try:
