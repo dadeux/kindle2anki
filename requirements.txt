@@ -1,7 +1,9 @@
 beautifulsoup4==4.12.3
+chardet==5.2.0
 cs50==9.3.4
 genanki==0.13.1
 pyrae==0.1.4
+pytest==8.3.2
 regex==2024.9.11
 Requests==2.32.3
 simple_term_menu==1.6.4
