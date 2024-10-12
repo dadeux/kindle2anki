@@ -63,7 +63,7 @@ def main(): # main program
         session = connect(dict['url'], dict['referer'], num_log_level)
 
         # retrieve dictinary definitions for the words in our book that were looked up in kindle
-        definitions = get_definitions(session, dict, words)
+        definitions = get_definitions(session, dict, words, num_log_level)
 
         # close the https session
         session.close()
@@ -80,7 +80,9 @@ def main(): # main program
         exit(f'\nToo bad - no definitions found in selected dictionary for words in selected book!\n')
 
     # write out card deck to a apkg file
+    print(f'writing out card deck to {deckname}', end="")
     genanki.Package(deck).write_to_file(deckname)
+    print('done')
 
 def checkargs(argv): # check and evaluate command line input
     """
@@ -261,7 +263,7 @@ Press any key to continue ...
 
     return next((dict for dict in dicts if dict['id'] == dict_id[options[menu_entry_index]]), None)
 
-def get_definitions(session, dict, words):  # retrieve dictionary definitions for the looked-up words from the chosen Kindle book
+def get_definitions(session, dict, words, log_level):  # retrieve dictionary definitions for the looked-up words from the chosen Kindle book
     """
     :param session:     the request session object to be used for get requests
     :param dict:        a dictionary (data type) containing information about the 
@@ -277,7 +279,7 @@ def get_definitions(session, dict, words):  # retrieve dictionary definitions fo
     print(f'Looking up words at {baseurl}...')
 
     detected_encoding = False
-    logging.getLogger('chardet').setLevel(logging.WARNING)
+    logging.getLogger('chardet').setLevel(log_level)
 
     for word in words:
         # determine lookup url for word
