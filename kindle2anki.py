@@ -80,7 +80,7 @@ def main(): # main program
         exit(f'\nToo bad - no definitions found in selected dictionary for words in selected book!\n')
 
     # write out card deck to a apkg file
-    print(f'writing out card deck to {deckname}', end="")
+    print(f'writing out card deck to {deckname}...', end="")
     genanki.Package(deck).write_to_file(deckname)
     print('done')
 
