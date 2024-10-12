@@ -19,14 +19,13 @@ The project contains three files:
    - creates card deck with one card of the chosen type with one card for each word from the looked-up words of the chosen book
   
 2. **k2a_dictionaries.py**:
-   contains one function that returns an a array of dictionaries (datatype), each containing informatin about a selectable dictionary (online language dictionary)
-   for the source language provided as argument (e.g. 'en' for English, or 'fr' for French)   
+   contains dictionary definitions embedded in one single function that returns an a array of dictionaries (datatype), each containing a definintion of
+   1 selectable dictionary (online language dictionary) for the source language provided as argument (e.g. 'en' for English, or 'fr' for French)
+   for each source language there may be several selectable dictionaries that vary as to Publisher (e.g. Merriam Webster) and Target Language.
    
 4. **k2a_response_parsers.py**:
-   contains customized parser functions, one for each online dictionary that extract the dictionary definitions for the looked-up words
-   from the https responses of the dicionary websites. These functions are selected and called by the main program depending on what
-   online dictionary the user has selected. They may become disfunctional (i.e. require updating) if a site operator changes the document structure of their responses to dictionary queries.
-
+   contains customized parser functions, one for each online dictionary that extract the dictionary definitions for the looked-up words from the https responses of the dicionary websites.
+   These functions are selected and called by the main program depending on what online dictionary the user has selected
 
 **How to use:**
   - Connect your Kindle via USB to your computer. The vocab.db can be located at <path_to_mounted_volume>:/system/vocab.db
