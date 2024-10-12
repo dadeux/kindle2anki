@@ -43,7 +43,7 @@ options:
   -d D        Name of Anki card deck, default='default.apkg'
   -l L        log level for http(s) sessions, default='WARNING'
 ```
-**Caveats**
+**Caveats:**
 - the parser functions will cease to work if the respective Online Dictionary Site Editors decide to change the document structure of their html response objects
 - the lookups may cease to work once Online Dictionary Site Administrators implement functionality that bars scripted user agents
 - Dictionary site adminstrators may implement limits top the number of queries they allow from the same source, which may limit the size of your card decks
