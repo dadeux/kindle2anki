@@ -9,7 +9,7 @@ The project contains three files:
 
 1. **kindle2anki.py**:
    The main program: 
-   - queries the kindle vocab.db for books that contain words that where looked up from within kindle
+   - queries the kindle vocab.db for books that contain words that where looked up from within Kindle
    - has you select a book for which you want to extract the looked-up vocabluary and create a card deck
    - has you select a dictionary from a choice of configured dictionaries for the language of the chosen book
    - has you select a card type with two types available:
