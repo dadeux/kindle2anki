@@ -44,6 +44,7 @@ options:
   -l L        log level for http(s) sessions, default='WARNING'
 ```
 **Caveats**
-- the parser functions will cease to work if the respective Online Dictionary Site Editors decide to change the document structure of their html
+- the parser functions will cease to work if the respective Online Dictionary Site Editors decide to change the document structure of their html response objects
 - the lookups may cease to work once Online Dictionary Site Administrators implement functionality that bars scripted user agents
-- Dictionary site adminstrators may implement limits top the number of queeries they allow from the same source, which may limit limit the size of your card decks and the volume of vocabulary covered in them.
+- Dictionary site adminstrators may implement limits top the number of queries they allow from the same source, which may limit the size of your card decks
+  and leave part of the vocabluary of a selected Kindle book uncaptured.
