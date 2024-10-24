@@ -1,4 +1,4 @@
-# separate file containing the dictionary definitions to avoid the mail program getting to clunky
+# separate file containing the dictionary definitions to avoid the main program getting to clunky
 # contains one function that returns an array of dicts for dictionaries per language .
 #  
 def get_dictionaries(lang): # get available dictionaries for language of chosen book
