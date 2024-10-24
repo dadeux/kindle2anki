@@ -223,7 +223,6 @@ def parse_en_1 (response, word=None):    # EN: Merriam-Websters mono-lingual
                     parsed += f"{i}. {cleaned}\n\n"
                 else:
                     parsed += f"   {cleaned}\n\n"
-            
     return parsed
 
 def parse_en_2 (response, word=None):    # EN: Larousse EN->DE
@@ -297,7 +296,6 @@ def parse_fr_1 (response, word=None):    # FR: Larousse mono-lingual
         cleaned = re.sub(r'(Synonymes?:)', r'\n\n\1', cleaned)
         cleaned = re.sub(r'(Contraires?:)', r'\n\n\1', cleaned)
                 
-        #parsed_array.append(cleaned)
         parsed += f"{cleaned}\n\n" 
     
     return parsed
@@ -310,7 +308,8 @@ def parse_es_1 (response, word=None):    # ES: Real Académia Española mono-lin
     """
     parsed = ""
     soup = bs(response, 'html.parser')
-   # Find the article containing the definitions
+    
+    # Find the article containing the definitions
     definitions_section = soup.find('div', id='resultados')
 
     # Extract the definitions from the <p> tags with class "j"
@@ -329,9 +328,7 @@ def parse_es_1 (response, word=None):    # ES: Real Académia Española mono-lin
             cleaned = re.sub(r'(Ant\.:)', r'\n   \1 ', cleaned) # list antonoymes in new line
             cleaned = re.sub(r' \.$', r'', cleaned)           # get rid of trailing " ."
             cleaned = re.sub(r' \d$', r'', cleaned)           # get rid of trailing nummber (from annotations)
-            #cleaned = re.sub(r'\d\.+$', r'', cleaned)
             
-            #parsed_array.append(cleaned)
             parsed += f"{cleaned}\n\n"
         return parsed
     else:
