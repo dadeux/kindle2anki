@@ -345,7 +345,7 @@ def highlight(definition, word, card_type, lang): # highlight occurences of the 
     """
     # we want to catch not only the looked up word verbatim but also grammatical variations 
     # (e.g. as per number, gender or conjugation) that are frequent in many languages
-    # the following dictionary of suffix lists (one list per language), is unfotunately a 
+    # the following dictionary of suffix lists (one list per language), is unfortunately a 
     # config item (though eventually a static one) hard coded in this function
     patterns = [word]
     s = {
