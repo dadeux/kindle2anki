@@ -324,8 +324,8 @@ def parse_es_1 (response, word=None):    # ES: Real Académia Española mono-lin
             cleaned = cleaned.replace(' , ', ', ')  # get red of superfluous spaces before "."
             cleaned = cleaned.replace('f. ', '')    # get rid of the gender indicator
             cleaned = cleaned.replace('m. ', '')    # get rid of the gender indicator
-            cleaned = re.sub(r'(Sin\.:)', r'\n   \1 ', cleaned) # list synonymes in new line
-            cleaned = re.sub(r'(Ant\.:)', r'\n   \1 ', cleaned) # list antonoymes in new line
+            cleaned = re.sub(r'(Sin\.:)', r'\n\n   \1 ', cleaned) # list synonymes in new line
+            cleaned = re.sub(r'(Ant\.:)', r'\n\n   \1 ', cleaned) # list antonoymes in new line
             cleaned = re.sub(r' \.$', r'', cleaned)           # get rid of trailing " ."
             cleaned = re.sub(r' \d$', r'', cleaned)           # get rid of trailing nummber (from annotations)
             

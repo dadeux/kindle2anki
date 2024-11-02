@@ -10,6 +10,7 @@ import requests
 import logging
 import chardet
 from urllib.error import HTTPError
+from urllib.parse import quote, unquote
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RetryError
 from pyrae import dle
@@ -63,7 +64,7 @@ def main(): # main program
         session = connect(dict['url'], dict['referer'], num_log_level)
 
         # retrieve dictinary definitions for the words in our book that were looked up in kindle
-        definitions = get_definitions(session, dict, words, num_log_level)
+        titles, definitions = get_definitions(session, dict, words, num_log_level)
 
         # close the https session
         session.close()
@@ -75,7 +76,7 @@ def main(): # main program
     deck = create_deck(deckname)
 
     # add cards to the card deck (of the chosen card type, one per word)
-    has_cards = create_cards(deck, dict, card_type, words, usage, definitions)
+    has_cards = create_cards(deck, dict, card_type, words, usage, titles, definitions)
     if has_cards == False:
         exit(f'\nToo bad - no definitions found in selected dictionary for words in selected book!\n')
 
@@ -271,7 +272,10 @@ def get_definitions(session, dict, words, log_level):  # retrieve dictionary def
     :param words:       the list of words to be looked up    
     :return definitions: a dictionary of definitions with looked up words as keys
     """
-    definitions = {}
+    definitions = {}        # holds dictionary definitions for word
+    titles = {}             # holds the new looked up word when a redirect was triggered
+                            # e.g. when the word was a conjugated verb form and the dictionary sites
+                            # redirects to the definition of the inifinitiv form, is used as "header" on cards
     baseurl = dict['url']
     parser = 'parse_' + dict['src_lang'] + "_" + str(dict['id'])
     parse = getattr(p, parser)
@@ -299,6 +303,7 @@ def get_definitions(session, dict, words, log_level):  # retrieve dictionary def
             if not detected_encoding:
                 detected_encoding = chardet.detect(r.content)['encoding']
             r.encoding = detected_encoding if detected_encoding else 'utf-8'
+            titles[word] = check_redirect(r.url, word)
             definitions[word] = parse(r.text, word) # word is not used in all parser functions but we submit it for good measure
 
         if definitions[word] == 'None':
@@ -306,7 +311,13 @@ def get_definitions(session, dict, words, log_level):  # retrieve dictionary def
         else:
             print('success') 
 
-    return definitions
+    return titles, definitions
+
+def check_redirect(url, word):
+    if "larousse" in url.lower():
+        return unquote(url.split("/")[-2])
+    else:
+        return word
 
 def get_definitions_rae(words, log_level):  # custom get_definitions function for "rae" since our standard connect method did not work
     """
@@ -352,7 +363,7 @@ def highlight(definition, word, card_type, lang): # highlight occurences of the 
     patterns = [word]
     s = {
         'en': ['s', 'ed', 'er', 'ing', 'ly'],
-        'fr': ['s', 'e', 'es', 'er', 'eur', 'euse', 'aux', 'il', 'ille', 'eux', 'x','t', 'ent' , 'is' ,'it', 'ons', 'ont','ment'],
+        'fr': ['s', 'e', 'es', 'er', 'eur', 'euse', 'aux', 'il', 'ille', 'eux', 'x','t', 'te', 'ent' , 'is' ,'it', 'ons', 'ont','ment'],
         'es': ['s','o','a','os','as','ir','er','ar','í','ó','é','aron','se','ieron','amos','imos','emos','eis','ais','mente','aba'],
         'pt': ['s','ir','er','ar','a','o','al','este','amos','emos','imos','ou','ei','i','ão','ões','aste','aram','eram','mente','ava'],
         'de': ['e','st','er','s','t','d','en','ig','lich','ung','keit'],
@@ -465,14 +476,15 @@ def create_deck(deckname): # create a card deck
     print(f'Creating card deck {deckname}')
     return deck
 
-def create_cards(deck, dict, card_type, words, usage, definitions): # write cards to card deck 
+def create_cards(deck, dict, card_type, words, usage, titles, definitions): # write cards to card deck 
     """
     :param deck:            the card deck object that accomodates the cards to be created
     :param dict:            the dictionary object used
     :param card_type:       the card type selected (A or B) 
     :param words:           array of words for which cards are to be created
     :param usage:           a dictionary object containing the text passages from which words had been looked up in Kindle 
-    :param definitions:     the dictionary definintions looked up for each word        
+    :param definitions:     the dictionary definitions looked up for each word
+    :param titles:          the "title" word for cards (may be the inifinitiv if the word was a conjugated verb form)       
     :return deck_is_empty:  Boolean: True if no cards were added, Falls if deck contains cards 
     """
     # Define the basic card model (Front/Back flashcard)
@@ -509,6 +521,7 @@ def create_cards(deck, dict, card_type, words, usage, definitions): # write card
         else:
             print(f"Adding card for {word} ...")
             #htmlify '\n' in definitions and highlight word occurences in bold-face
+            title = titles[word]
             definition = highlight(definitions[word].replace('\n','<br>'), word, card_type, dict['src_lang'])
             #definition = highlight(definitions[word], word, card_type, dict['src_lang'])
             definition = re.sub(r" {2,}", "\xa0", definition)
@@ -521,11 +534,11 @@ def create_cards(deck, dict, card_type, words, usage, definitions): # write card
             # Kindle passage and dictionary definitions
             if card_type == 'A':
                 # make looked word stand out bold in text passage
-                front = f"<b>{word}</b><br><br>{passage}"
+                front = f"<b>{title}</b><br><br>{passage}"
                 back = definition
             else: # card type must be 'B'
                 front = definition
-                back = f"<b>{word}</b><br><br>{passage}" 
+                back = f"<b>{title}</b><br><br>{passage}" 
         
             # create card for word
             card = genanki.Note(
